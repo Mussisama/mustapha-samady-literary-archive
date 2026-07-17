@@ -1,0 +1,20 @@
+{
+  "bookSlug": "eshgh-rahmatollah-alayh",
+  "bookTitle": "عشق رحمت‌الله‌علیه",
+  "status": "needs_review",
+  "instructions": "هر شعر پس از تطبیق عنوان، صفحه آغاز، صفحه پایان و متن کامل به آرایه poems افزوده شود.",
+  "poems": [
+    {
+      "title": "",
+      "slug": "",
+      "startPage": null,
+      "endPage": null,
+      "text": "",
+      "topics": [],
+      "keywords": [],
+      "seoTitle": "",
+      "seoDescription": "",
+      "status": "draft"
+    }
+  ]
+}
