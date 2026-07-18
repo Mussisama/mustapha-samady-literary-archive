@@ -1,12 +1,10 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 
 export function BookEditor({ book }: { book: any }) {
   const [form, setForm] = useState(book);
   const [message, setMessage] = useState("");
-  const router = useRouter();
 
   function change(key: string, value: string) {
     setForm((current: any) => ({ ...current, [key]: value }));
@@ -20,8 +18,14 @@ export function BookEditor({ book }: { book: any }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
-    setMessage(response.ok ? "ذخیره شد." : "خطا در ذخیره.");
-    router.refresh();
+    const result = await response.json().catch(() => ({}));
+    if (response.ok) {
+      setMessage(result.deploymentPending
+        ? "اطلاعات در گیت‌هاب ذخیره شد؛ انتشار نسخه تازه در حال انجام است."
+        : "ذخیره شد.");
+    } else {
+      setMessage(`خطا در ذخیره: ${result.error || response.status}`);
+    }
   }
 
   async function upload(event: FormEvent<HTMLFormElement>) {
@@ -32,8 +36,14 @@ export function BookEditor({ book }: { book: any }) {
       method: "POST",
       body: data,
     });
-    setMessage(response.ok ? "فایل‌ها ذخیره شدند." : "بارگذاری ناموفق بود.");
-    router.refresh();
+    const result = await response.json().catch(() => ({}));
+    if (response.ok) {
+      setMessage(result.deploymentPending
+        ? "فایل‌ها در گیت‌هاب ذخیره شدند؛ انتشار نسخه تازه در حال انجام است."
+        : "فایل‌ها ذخیره شدند.");
+    } else {
+      setMessage(`بارگذاری ناموفق بود: ${result.error || response.status}`);
+    }
   }
 
   return (

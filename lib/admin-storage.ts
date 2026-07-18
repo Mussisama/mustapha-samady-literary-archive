@@ -5,18 +5,127 @@ const dataDir = path.join(process.cwd(), "data");
 const poemsFile = path.join(dataDir, "poems.json");
 const booksFile = path.join(dataDir, "books.json");
 
-export async function readPoems() {
-  return JSON.parse(await fs.readFile(poemsFile, "utf8"));
+const githubToken = process.env.GITHUB_TOKEN?.trim();
+const githubOwner = process.env.GITHUB_OWNER?.trim() || "Mussisama";
+const githubRepo = process.env.GITHUB_REPO?.trim() || "mustapha-samady-literary-archive";
+const githubBranch = process.env.GITHUB_BRANCH?.trim() || "main";
+
+function githubEnabled() {
+  return Boolean(githubToken);
 }
 
-export async function writePoems(poems: unknown[]) {
-  await fs.writeFile(poemsFile, JSON.stringify(poems, null, 2), "utf8");
+function githubApiUrl(filePath: string) {
+  const encodedPath = filePath.split("/").map(encodeURIComponent).join("/");
+  return `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/${encodedPath}`;
+}
+
+function githubHeaders() {
+  if (!githubToken) throw new Error("GITHUB_TOKEN is not configured");
+  return {
+    Accept: "application/vnd.github+json",
+    Authorization: `Bearer ${githubToken}`,
+    "X-GitHub-Api-Version": "2022-11-28",
+    "User-Agent": "mustapha-samady-literary-archive",
+  };
+}
+
+async function getGitHubFile(filePath: string) {
+  const response = await fetch(`${githubApiUrl(filePath)}?ref=${encodeURIComponent(githubBranch)}`, {
+    headers: githubHeaders(),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const details = await response.text();
+    throw new Error(`GitHub read failed (${response.status}): ${details}`);
+  }
+
+  const file = await response.json() as {
+    sha: string;
+    content: string;
+    encoding: string;
+  };
+
+  if (file.encoding !== "base64") {
+    throw new Error(`Unsupported GitHub encoding: ${file.encoding}`);
+  }
+
+  return {
+    sha: file.sha,
+    buffer: Buffer.from(file.content.replace(/\n/g, ""), "base64"),
+  };
+}
+
+async function updateGitHubFile(filePath: string, buffer: Buffer, commitMessage: string) {
+  const current = await getGitHubFile(filePath);
+  const response = await fetch(githubApiUrl(filePath), {
+    method: "PUT",
+    headers: {
+      ...githubHeaders(),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      message: commitMessage,
+      content: buffer.toString("base64"),
+      sha: current.sha,
+      branch: githubBranch,
+    }),
+  });
+
+  if (!response.ok) {
+    const details = await response.text();
+    throw new Error(`GitHub write failed (${response.status}): ${details}`);
+  }
+
+  return response.json() as Promise<{
+    commit?: { html_url?: string; sha?: string };
+    content?: { html_url?: string };
+  }>;
+}
+
+async function readJson<T>(localFile: string, githubPath: string): Promise<T> {
+  if (githubEnabled()) {
+    const remote = await getGitHubFile(githubPath);
+    return JSON.parse(remote.buffer.toString("utf8")) as T;
+  }
+
+  return JSON.parse(await fs.readFile(localFile, "utf8")) as T;
+}
+
+async function writeJson(githubPath: string, localFile: string, value: unknown, commitMessage: string) {
+  const buffer = Buffer.from(`${JSON.stringify(value, null, 2)}\n`, "utf8");
+
+  if (githubEnabled()) {
+    return updateGitHubFile(githubPath, buffer, commitMessage);
+  }
+
+  await fs.writeFile(localFile, buffer);
+  return { local: true };
+}
+
+export async function readPoems() {
+  return readJson<any[]>(poemsFile, "data/poems.json");
+}
+
+export async function writePoems(poems: unknown[], commitMessage = "Update poem content from admin") {
+  return writeJson("data/poems.json", poemsFile, poems, commitMessage);
 }
 
 export async function readBooks() {
-  return JSON.parse(await fs.readFile(booksFile, "utf8"));
+  return readJson<any[]>(booksFile, "data/books.json");
 }
 
-export async function writeBooks(books: unknown[]) {
-  await fs.writeFile(booksFile, JSON.stringify(books, null, 2), "utf8");
+export async function writeBooks(books: unknown[], commitMessage = "Update book metadata from admin") {
+  return writeJson("data/books.json", booksFile, books, commitMessage);
+}
+
+export async function writePublicFile(filePath: string, buffer: Buffer, commitMessage: string) {
+  if (githubEnabled()) {
+    return updateGitHubFile(filePath, buffer, commitMessage);
+  }
+
+  const localPath = path.join(process.cwd(), filePath);
+  await fs.mkdir(path.dirname(localPath), { recursive: true });
+  await fs.writeFile(localPath, buffer);
+  return { local: true };
 }

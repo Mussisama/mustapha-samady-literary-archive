@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { calculateSeoScore } from "@/lib/seo-score";
 import { automaticSeoDescription, automaticSeoTitle } from "@/lib/seo";
 
@@ -16,7 +15,6 @@ export function PoemEditor({ poem }: { poem: any }) {
     keywordsText: (poem.keywords || []).join(", "),
   });
   const [message, setMessage] = useState("");
-  const router = useRouter();
 
   function change(key: string, value: string | number) {
     setForm((current: any) => ({ ...current, [key]: value }));
@@ -43,8 +41,14 @@ export function PoemEditor({ poem }: { poem: any }) {
         keywords: splitList(form.keywordsText),
       }),
     });
-    setMessage(response.ok ? "تغییرات ذخیره شد." : "خطا در ذخیره.");
-    router.refresh();
+    const result = await response.json().catch(() => ({}));
+    if (response.ok) {
+      setMessage(result.deploymentPending
+        ? "تغییرات در گیت‌هاب ذخیره شد؛ انتشار نسخه تازه در حال انجام است (حدود ۱ تا ۳ دقیقه)."
+        : "تغییرات ذخیره شد.");
+    } else {
+      setMessage(`خطا در ذخیره: ${result.error || response.status}`);
+    }
   }
 
   async function preview() {
