@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
-import { readPoems, writePoems } from "@/lib/admin-storage";
+import { readBooks, readPoems, writeBooks, writePoems } from "@/lib/admin-storage";
 
 export async function GET(
   _request: Request,
@@ -60,5 +60,33 @@ export async function PATCH(
       { error: error instanceof Error ? error.message : "Save failed" },
       { status: 500 }
     );
+  }
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  if (!(await requireAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const { id } = await params;
+    const poems = await readPoems();
+    const poem = poems.find((item: any) => item.id === id);
+    if (!poem) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const nextPoems = poems.filter((item: any) => item.id !== id);
+    await writePoems(nextPoems, `Admin: delete poem ${id}`);
+
+    const books = await readBooks();
+    const bookIndex = books.findIndex((item: any) => item.slug === poem.bookSlug);
+    if (bookIndex >= 0) {
+      const remaining = nextPoems.filter((item: any) => item.bookSlug === poem.bookSlug);
+      books[bookIndex].poemCount = remaining.length;
+      books[bookIndex].poems = remaining.sort((a: any, b: any) => Number(a.order || 0) - Number(b.order || 0)).map((item: any) => item.slug);
+      await writeBooks(books, `Admin: update book after deleting ${id}`);
+    }
+    return NextResponse.json({ ok: true, deploymentPending: Boolean(process.env.GITHUB_TOKEN) });
+  } catch (error) {
+    console.error("Failed to delete poem", error);
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Delete failed" }, { status: 500 });
   }
 }

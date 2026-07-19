@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { criticism } from "@/lib/data";
+import { criticism, criticismUrlSegment } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "نقد و نظر درباره آثار مصطفی صمدی",
@@ -20,7 +20,7 @@ export default function CriticismPage() {
       <div className="criticism-list">
         {entries.map((item) => (
           <article key={item.id}>
-            <Link href={`/criticism/${item.slug}`}>
+            <Link href={`/criticism/${criticismUrlSegment(item)}`}>
               <h2>{item.title}</h2>
               <p>{item.subtitle}</p>
               <div>نقد از: {item.author}{item.publishedDate ? ` · ${item.publishedDate}` : ""}</div>

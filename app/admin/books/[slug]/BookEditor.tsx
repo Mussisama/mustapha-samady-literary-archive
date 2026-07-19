@@ -28,6 +28,15 @@ export function BookEditor({ book }: { book: any }) {
     }
   }
 
+  async function remove() {
+    if (!window.confirm("این کتاب حذف شود؟ اگر کتاب شعر داشته باشد، حذف انجام نمی‌شود.")) return;
+    setMessage("در حال حذف...");
+    const response = await fetch(`/api/admin/books/${book.slug}`, { method: "DELETE" });
+    const result = await response.json().catch(() => ({}));
+    if (response.ok) window.location.href = "/admin/books";
+    else setMessage(`خطا در حذف: ${result.error || response.status}`);
+  }
+
   async function upload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage("در حال بارگذاری...");
@@ -63,7 +72,7 @@ export function BookEditor({ book }: { book: any }) {
           <label>ویراستار<input value={form.editor || ""} onChange={e => change("editor", e.target.value)} /></label>
           <label>طراح جلد<input value={form.coverDesigner || ""} onChange={e => change("coverDesigner", e.target.value)} /></label>
         </div>
-        <button className="admin-primary" type="submit">ذخیره اطلاعات</button>
+        <div className="admin-actions"><button className="admin-primary" type="submit">ذخیره اطلاعات</button><button className="admin-danger" type="button" onClick={remove}>حذف کتاب</button></div>
       </form>
 
       <form className="admin-form" onSubmit={upload}>

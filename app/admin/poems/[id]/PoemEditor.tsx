@@ -51,6 +51,15 @@ export function PoemEditor({ poem }: { poem: any }) {
     }
   }
 
+  async function remove() {
+    if (!window.confirm("این شعر برای همیشه حذف شود؟")) return;
+    setMessage("در حال حذف...");
+    const response = await fetch(`/api/admin/poems/${poem.id}`, { method: "DELETE" });
+    const result = await response.json().catch(() => ({}));
+    if (response.ok) window.location.href = "/admin/poems";
+    else setMessage(`خطا در حذف: ${result.error || response.status}`);
+  }
+
   async function preview() {
     await fetch("/api/admin/preview", {
       method: "POST",
@@ -121,6 +130,7 @@ export function PoemEditor({ poem }: { poem: any }) {
         <div className="admin-actions">
           <button className="admin-primary" type="submit">ذخیره تغییرات</button>
           <button className="admin-secondary" type="button" onClick={preview}>پیش‌نمایش</button>
+          <button className="admin-danger" type="button" onClick={remove}>حذف شعر</button>
         </div>
         {message && <p className="admin-message">{message}</p>}
       </form>

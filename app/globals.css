@@ -616,3 +616,14 @@ body:has(.admin-shell) main{
 
 .admin-heading-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .admin-heading-actions .admin-primary { text-decoration: none; white-space: nowrap; }
+
+/* Admin destructive actions */
+.admin-danger{
+  border:1px solid #9f3f36;
+  background:transparent;
+  color:#8f3028;
+  padding:10px 16px;
+  cursor:pointer;
+  font:inherit;
+}
+.admin-danger:hover{background:#8f3028;color:#fff}

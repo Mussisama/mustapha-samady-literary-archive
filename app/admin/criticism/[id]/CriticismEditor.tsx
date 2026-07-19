@@ -5,6 +5,19 @@ export function CriticismEditor({ item }: { item: any }) {
   const [form, setForm] = useState(item);
   const [message, setMessage] = useState("");
   function change(key: string, value: string) { setForm((current: any) => ({ ...current, [key]: value })); }
+  async function remove() {
+    if (!window.confirm("این نقد برای همیشه حذف شود؟")) return;
+    setMessage("در حال حذف...");
+    const response = await fetch(`/api/admin/criticism/${item.id}`, { method: "DELETE" });
+    const result = await response.json().catch(() => ({}));
+    if (response.ok) window.location.href = "/admin/criticism";
+    else setMessage(`خطا در حذف: ${result.error || response.status}`);
+  }
+
+  function publicSegment() {
+    return /^[a-z0-9-]+$/i.test(String(item.slug || "")) ? item.slug : item.id;
+  }
+
   async function save(event: FormEvent) {
     event.preventDefault(); setMessage("در حال ذخیره...");
     const response = await fetch(`/api/admin/criticism/${item.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
@@ -22,7 +35,7 @@ export function CriticismEditor({ item }: { item: any }) {
       </div>
       <label>متن نقد<textarea className="admin-poem-textarea" rows={36} value={form.body || ""} onChange={(e) => change("body", e.target.value)} spellCheck={false} /></label>
       <details className="seo-override"><summary>تنظیمات SEO — اختیاری</summary><label>SEO Title<input value={form.seoTitle || ""} onChange={(e) => change("seoTitle", e.target.value)} /></label><label>SEO Description<textarea rows={3} value={form.seoDescription || ""} onChange={(e) => change("seoDescription", e.target.value)} /></label></details>
-      <div className="admin-actions"><button className="admin-primary" type="submit">ذخیره تغییرات</button><a className="admin-secondary" href={`/criticism/${item.slug}`} target="_blank">مشاهده</a></div>
+      <div className="admin-actions"><button className="admin-primary" type="submit">ذخیره تغییرات</button><a className="admin-secondary" href={`/criticism/${publicSegment()}`} target="_blank">مشاهده</a><button className="admin-danger" type="button" onClick={remove}>حذف نقد</button></div>
       {message && <p className="admin-message">{message}</p>}
     </form>
   );

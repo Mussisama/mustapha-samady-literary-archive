@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/JsonLd";
-import { criticism, getBook, getCriticism } from "@/lib/data";
+import { criticism, criticismUrlSegment, getBook, getCriticism } from "@/lib/data";
 import { site } from "@/lib/site";
 
+export const dynamicParams = true;
+
 export function generateStaticParams() {
-  return criticism.filter((item) => item.status === "published").map((item) => ({ slug: item.slug }));
+  return criticism.filter((item) => item.status === "published").map((item) => ({ slug: criticismUrlSegment(item) }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -16,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: item.seoTitle || `${item.title} | نقد و نظر`,
     description: item.seoDescription || item.excerpt,
-    alternates: { canonical: `/criticism/${item.slug}` },
+    alternates: { canonical: `/criticism/${criticismUrlSegment(item)}` },
     openGraph: { type: "article", title: item.title, description: item.seoDescription || item.excerpt },
   };
 }
@@ -36,7 +38,7 @@ export default async function CriticismDetailPage({ params }: { params: Promise<
     itemReviewed: book ? { "@type": "Book", name: book.title, url: `${site.url}/books/${book.slug}` } : undefined,
     datePublished: item.publishedDate || undefined,
     inLanguage: "fa",
-    url: `${site.url}/criticism/${item.slug}`,
+    url: `${site.url}/criticism/${criticismUrlSegment(item)}`,
   };
   return (
     <main className="criticism-page container">

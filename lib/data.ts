@@ -40,12 +40,17 @@ export function getAdjacentPoems(bookSlug: string, poemOrder: number, includeDra
   };
 }
 
-export function getCriticism(slug: string) {
-  return criticism.find((item) => item.slug === slug);
+export function getCriticism(segment: string) {
+  return criticism.find((item) => item.slug === segment || item.id === segment);
 }
 export function getBookCriticism(bookSlug: string) {
   return criticism.filter((item) => item.relatedBook === bookSlug && item.status === "published");
 }
 export function getPoemCriticism(poemId: string) {
   return criticism.filter((item) => item.relatedPoem === poemId && item.status === "published");
+}
+
+export function criticismUrlSegment(item: { id: string; slug?: string }) {
+  const slug = String(item.slug || "");
+  return /^[a-z0-9-]+$/i.test(slug) ? slug : item.id;
 }
