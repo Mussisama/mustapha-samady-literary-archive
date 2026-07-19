@@ -21,7 +21,7 @@ export default async function AdminPoemsPage() {
           <div className="admin-kicker">مدیریت محتوا</div>
           <h1>شعرها</h1>
         </div>
-        <span className="admin-count">{entries.length} عنوان</span>
+        <div className="admin-heading-actions"><Link className="admin-primary" href="/admin/poems/new">افزودن شعر جدید</Link><span className="admin-count">{entries.length} عنوان</span></div>
       </div>
 
       <div className="admin-table">

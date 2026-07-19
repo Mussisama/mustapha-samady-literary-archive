@@ -613,3 +613,6 @@ body:has(.admin-shell) main{
 .book-criticism span{color:var(--muted);font-size:.85rem;white-space:nowrap}
 .criticism-editor{max-width:900px}
 @media(max-width:620px){.criticism-page{width:min(100% - 34px,820px)}.criticism-body{font-size:.98rem;line-height:2.15}.book-criticism a{display:grid;gap:5px}.nav{flex-wrap:wrap}}
+
+.admin-heading-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.admin-heading-actions .admin-primary { text-decoration: none; white-space: nowrap; }

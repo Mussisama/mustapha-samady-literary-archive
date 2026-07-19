@@ -9,7 +9,7 @@ export default async function AdminBooksPage() {
 
   return (
     <div className="admin-page">
-      <h1>کتاب‌ها</h1>
+      <div className="admin-heading-row"><h1>کتاب‌ها</h1><Link className="admin-primary" href="/admin/books/new">افزودن کتاب جدید</Link></div>
       <div className="admin-book-grid">
         {books.map((book) => (
           <Link className="admin-book-card" href={`/admin/books/${book.slug}`} key={book.slug}>

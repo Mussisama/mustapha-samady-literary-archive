@@ -30,13 +30,14 @@ function githubHeaders() {
   };
 }
 
-async function getGitHubFile(filePath: string) {
+async function getGitHubFile(filePath: string, allowMissing = false) {
   const response = await fetch(`${githubApiUrl(filePath)}?ref=${encodeURIComponent(githubBranch)}`, {
     headers: githubHeaders(),
     cache: "no-store",
   });
 
   if (!response.ok) {
+    if (allowMissing && response.status === 404) return null;
     const details = await response.text();
     throw new Error(`GitHub read failed (${response.status}): ${details}`);
   }
@@ -58,7 +59,7 @@ async function getGitHubFile(filePath: string) {
 }
 
 async function updateGitHubFile(filePath: string, buffer: Buffer, commitMessage: string) {
-  const current = await getGitHubFile(filePath);
+  const current = await getGitHubFile(filePath, true);
   const response = await fetch(githubApiUrl(filePath), {
     method: "PUT",
     headers: {
@@ -68,7 +69,7 @@ async function updateGitHubFile(filePath: string, buffer: Buffer, commitMessage:
     body: JSON.stringify({
       message: commitMessage,
       content: buffer.toString("base64"),
-      sha: current.sha,
+      ...(current ? { sha: current.sha } : {}),
       branch: githubBranch,
     }),
   });
@@ -87,6 +88,7 @@ async function updateGitHubFile(filePath: string, buffer: Buffer, commitMessage:
 async function readJson<T>(localFile: string, githubPath: string): Promise<T> {
   if (githubEnabled()) {
     const remote = await getGitHubFile(githubPath);
+    if (!remote) throw new Error(`GitHub file not found: ${githubPath}`);
     return JSON.parse(remote.buffer.toString("utf8")) as T;
   }
 
