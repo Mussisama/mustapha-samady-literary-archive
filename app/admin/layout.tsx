@@ -18,6 +18,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link href="/admin">داشبورد</Link>
             <Link href="/admin/books">کتاب‌ها</Link>
             <Link href="/admin/poems">شعرها</Link>
+            <Link href="/admin/criticism">نقد و نظر</Link>
             <Link href="/admin/topics">موضوع‌ها</Link>
             <Link href="/admin/seo">SEO</Link>
             <Link href="/admin/seo/opportunities">SEO Opportunities</Link>

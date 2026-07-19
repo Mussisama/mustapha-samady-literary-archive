@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/JsonLd";
-import { books, getBook, getBookPoems } from "@/lib/data";
+import { books, getBook, getBookPoems, getBookCriticism } from "@/lib/data";
 import { site } from "@/lib/site";
 import { isPreviewEnabled } from "@/lib/preview";
 import { topics } from "@/lib/data";
@@ -55,6 +55,7 @@ export default async function BookPage({
 
   const preview = await isPreviewEnabled();
   const entries = getBookPoems(book.slug, preview);
+  const bookCriticism = getBookCriticism(book.slug);
   const bookTopics = topics
     .map((topic) => ({
       topic,
@@ -185,6 +186,19 @@ export default async function BookPage({
             )
           ) : (
             <div className="context-box"><p>فهرست دقیق این کتاب هنوز در حال بازبینی است.</p></div>
+          )}
+          {bookCriticism.length > 0 && (
+            <section className="book-criticism">
+              <h2>نقد و نظر درباره این کتاب</h2>
+              <div>
+                {bookCriticism.map((item) => (
+                  <Link href={`/criticism/${item.slug}`} key={item.id}>
+                    <strong>{item.title}</strong>
+                    <span>{item.author}</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
           )}
           {bookTopics.length > 0 && (
             <section className="book-topics">

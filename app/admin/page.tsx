@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
-import { books, poems, topics } from "@/lib/data";
+import { books, poems, topics, criticism } from "@/lib/data";
 import { calculateSeoScore } from "@/lib/seo-score";
 
 export default async function AdminDashboard() {
@@ -37,6 +37,11 @@ export default async function AdminDashboard() {
         <Link className="admin-dashboard-card" href="/admin/poems">
           <span>شعرها</span>
           <strong>ویرایش متن، وضعیت انتشار و متادیتا</strong>
+        </Link>
+
+        <Link className="admin-dashboard-card" href="/admin/criticism">
+          <span>نقد و نظر</span>
+          <strong>{criticism.length} نقد ثبت‌شده</strong>
         </Link>
 
         <Link className="admin-dashboard-card" href="/admin/seo">

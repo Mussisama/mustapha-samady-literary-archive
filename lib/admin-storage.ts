@@ -4,6 +4,7 @@ import path from "path";
 const dataDir = path.join(process.cwd(), "data");
 const poemsFile = path.join(dataDir, "poems.json");
 const booksFile = path.join(dataDir, "books.json");
+const criticismFile = path.join(dataDir, "criticism.json");
 
 const githubToken = process.env.GITHUB_TOKEN?.trim();
 const githubOwner = process.env.GITHUB_OWNER?.trim() || "Mussisama";
@@ -128,4 +129,12 @@ export async function writePublicFile(filePath: string, buffer: Buffer, commitMe
   await fs.mkdir(path.dirname(localPath), { recursive: true });
   await fs.writeFile(localPath, buffer);
   return { local: true };
+}
+
+export async function readCriticism() {
+  return readJson<any[]>(criticismFile, "data/criticism.json");
+}
+
+export async function writeCriticism(items: unknown[], commitMessage = "Update criticism from admin") {
+  return writeJson("data/criticism.json", criticismFile, items, commitMessage);
 }
